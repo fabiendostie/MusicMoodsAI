@@ -3,6 +3,8 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler 
 from random import shuffle  
+from tkinter import filedialog 
+from tkinter import * 
 
 # Full Camelot Wheel Dictionary
 camelot_wheel = {
@@ -110,7 +112,29 @@ def generate_playlist(music_directory, starting_key, mood='energetic'):
     shuffle(compatible_songs) 
 
     playlist = [song['filename'] for song in compatible_songs]
-    return playlist
+
+    # Get save location from the user
+    root = Tk()
+    root.withdraw()  
+    playlist_filepath = filedialog.asksaveasfilename(defaultextension=".m3u")
+    root.destroy()
+
+    # Save as an M3U playlist file
+    if playlist_filepath:  
+        with open(playlist_filepath, 'w') as playlist_file:
+            playlist_file.write("#EXTM3U\n")  # M3U header
+            for song in playlist:
+                absolute_song_path = os.path.abspath(os.path.join(music_directory, song))
+                playlist_file.write(f"{absolute_song_path}\n") 
+
+    return playlist 
+
+def select_music_folder():
+    root = Tk()
+    root.withdraw()  # Hide the main tkinter window
+    music_directory = filedialog.askdirectory()
+    root.destroy()  
+    return music_directory
 
 # Enhanced Logging Configuration
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -124,10 +148,10 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 # Example Usage
-starting_key = '5B' 
-my_playlist = generate_playlist('music_library', starting_key)
-
-# Print the generated playlist
-print("Playlist:")
-for song in my_playlist:
-  print(song) 
+music_dir = select_music_folder()  
+if music_dir:  
+    starting_key = '5B' 
+    my_playlist = generate_playlist(music_dir, starting_key) 
+    print("Playlist:") 
+    for song in my_playlist:
+        print(song) 
